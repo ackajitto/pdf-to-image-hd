@@ -182,9 +182,20 @@ convertBtn.addEventListener('click', async ()=>{
             canvas.width = viewport.width;
             canvas.height = viewport.height;
 
-            await page.render({canvasContext:ctx,viewport}).promise;
+           await page.render({canvasContext:ctx,viewport}).promise;
 
-            const imgURL = canvas.toDataURL('image/png');
+/* ===== ✅ ใส่เลขหน้า overlay ===== */
+ctx.font = `${Math.floor(canvas.width / 25)}px Prompt`;
+ctx.fillStyle = "rgba(0,0,0,0.6)";
+ctx.fillRect(canvas.width - 180, canvas.height - 70, 160, 50);
+
+ctx.fillStyle = "#fff";
+ctx.textAlign = "center";
+ctx.textBaseline = "middle";
+ctx.fillText(`Page ${i}`, canvas.width - 100, canvas.height - 45);
+/* ================================= */
+
+const imgURL = canvas.toDataURL('image/png');
 
             // preview
             const img = document.createElement('img');
