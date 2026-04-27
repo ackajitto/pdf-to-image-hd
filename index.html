@@ -3,670 +3,215 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ตัดสินใจเลย! (Decision Maker PRO)</title>
+<title>PDF to Image Converter PRO</title>
+
+<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
 <style>
-  /* --- Color Themes --- */
-  :root {
-    --bg-dark: #0f172a;
-    --card-bg: rgba(30, 41, 59, 0.6);
-    --card-hover: rgba(51, 65, 85, 0.8);
-    --primary: #8b5cf6;
-    --primary-hover: #7c3aed;
-    --secondary: #ec4899;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --danger: #ef4444;
-    --border: rgba(255, 255, 255, 0.1);
-    --input-bg: rgba(0,0,0,0.2);
-    --glow: 0 0 20px rgba(139, 92, 246, 0.4);
-    --glass-blur: blur(12px);
-    --bg-pattern: radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.15), transparent 25%),
-                  radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.15), transparent 25%);
-  }
+*{
+    box-sizing:border-box;
+    font-family:'Prompt',sans-serif;
+}
+body{
+    margin:0;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:#fff;
+}
 
-  [data-theme="light"] {
-    --bg-dark: #f8fafc;
-    --card-bg: rgba(255, 255, 255, 0.7);
-    --card-hover: rgba(255, 255, 255, 1);
-    --primary: #6366f1;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border: rgba(0, 0, 0, 0.08);
-    --input-bg: rgba(255,255,255,0.8);
-    --bg-pattern: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.1), transparent 25%),
-                  radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.1), transparent 25%);
-  }
+/* Container */
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:20px;
+}
 
-  [data-theme="gradient"] {
-    --bg-dark: linear-gradient(135deg, #1e1b4b, #4c1d95, #701a75);
-    --card-bg: rgba(255, 255, 255, 0.05);
-    --card-hover: rgba(255, 255, 255, 0.1);
-    --border: rgba(255, 255, 255, 0.15);
-    --bg-pattern: none;
-  }
+/* Header */
+.header{
+    text-align:center;
+    margin-bottom:25px;
+}
+.header h1{
+    margin:0;
+    font-size:28px;
+}
+.header p{
+    opacity:0.7;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* Upload Box */
+.upload-box{
+    border:2px dashed #38bdf8;
+    padding:30px;
+    text-align:center;
+    border-radius:16px;
+    background:rgba(255,255,255,0.05);
+    cursor:pointer;
+    transition:0.3s;
+}
+.upload-box:hover{
+    background:rgba(255,255,255,0.08);
+}
 
-  body {
-    background: var(--bg-dark);
-    background-image: var(--bg-pattern);
-    color: var(--text-main);
-    font-family: 'Prompt', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-    transition: background 0.5s ease;
-  }
+/* Button */
+button{
+    margin-top:15px;
+    padding:12px 20px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,#38bdf8,#6366f1);
+    color:#fff;
+    font-weight:500;
+    cursor:pointer;
+    transition:0.2s;
+}
+button:hover{
+    transform:scale(1.05);
+}
 
-  /* Centered Main Layout */
-  .app-wrapper {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 30px 20px 160px;
-    position: relative;
-  }
+/* Status */
+.status{
+    margin-top:15px;
+    text-align:center;
+}
 
-  /* Settings Button (Top Right) */
-  .btn-settings {
-    position: absolute;
-    top: 30px;
-    right: 20px;
-    background: var(--card-bg); backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border); color: var(--text-main);
-    width: 50px; height: 50px; border-radius: 50%;
-    font-size: 1.4rem; cursor: pointer; transition: all 0.2s;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 40;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
-  .btn-settings:hover { transform: rotate(45deg) scale(1.05); border-color: var(--primary); }
+/* Progress */
+.progress{
+    width:100%;
+    height:10px;
+    background:#1e293b;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:10px;
+}
+.progress-bar{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#22c55e,#4ade80);
+}
 
-  /* Header */
-  header { text-align: center; margin-bottom: 40px; margin-top: 10px; }
-  header h1 {
-    font-size: clamp(3rem, 8vw, 4.5rem); font-weight: 700; line-height: 1.1;
-    background: linear-gradient(to right, #a78bfa, #f472b6);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    margin-bottom: 12px;
-  }
-  header p { color: var(--text-muted); font-size: 1.25rem; }
-
-  /* Input Section */
-  .input-group { display: flex; gap: 12px; margin-bottom: 30px; }
-  .input-group input {
-    flex: 1; background: var(--card-bg); backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border); color: var(--text-main);
-    font-family: 'Prompt', sans-serif; font-size: 1.2rem;
-    padding: 18px 24px; border-radius: 20px; outline: none; transition: all 0.3s ease;
-  }
-  .input-group input:focus { border-color: var(--primary); box-shadow: var(--glow); }
-  .btn-add {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white; border: none; width: 70px; border-radius: 20px;
-    font-size: 2rem; cursor: pointer; transition: all 0.2s ease;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .btn-add:hover { transform: translateY(-2px); box-shadow: var(--glow); }
-  .btn-add:active { transform: translateY(0); }
-
-  /* List Header */
-  .list-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px; padding: 0 8px;
-  }
-  .list-header h2 { font-size: 1.3rem; font-weight: 500; display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
-  .badge { background: rgba(139, 92, 246, 0.2); padding: 4px 12px; border-radius: 20px; font-size: 1rem; color: var(--primary); }
-  .weight-text { font-size: 1.1rem; color: var(--text-muted); }
-
-  /* Choices List */
-  .choices-list { display: flex; flex-direction: column; gap: 16px; }
-  
-  .choice-card {
-    background: var(--card-bg); backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border); border-radius: 20px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer; overflow: hidden;
-    animation: slideIn 0.3s ease forwards;
-  }
-  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .choice-card.removing { transform: translateX(50px); opacity: 0; pointer-events: none; }
-  .choice-card:hover { background: var(--card-hover); border-color: var(--primary); }
-  .choice-card.selected { border-color: var(--primary); box-shadow: 0 0 20px rgba(139, 92, 246, 0.25); background: rgba(139, 92, 246, 0.1); }
-  .choice-card.spinning { border-color: var(--secondary); background: rgba(236, 72, 153, 0.15); transform: scale(1.02); }
-
-  .card-main { display: flex; align-items: center; padding: 20px 24px; gap: 16px; }
-  
-  .radio-circle {
-    width: 28px; height: 28px; border: 2px solid var(--text-muted); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; flex-shrink: 0;
-  }
-  .radio-inner {
-    width: 14px; height: 14px; background: var(--primary); border-radius: 50%;
-    transform: scale(0); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .choice-card.selected .radio-circle { border-color: var(--primary); }
-  .choice-card.selected .radio-inner { transform: scale(1); }
-
-  .choice-title { flex: 1; font-size: 1.25rem; font-weight: 500; display: flex; flex-direction: column; gap: 8px; }
-  .choice-meta { display: flex; gap: 8px; font-size: 0.95rem; color: var(--text-muted); font-weight: 300; flex-wrap: wrap; }
-  .meta-tag { background: rgba(139, 92, 246, 0.1); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2); }
-  
-  .card-actions { display: flex; gap: 8px; }
-  .btn-icon {
-    background: rgba(255,255,255,0.05); border: none; color: var(--text-muted);
-    width: 44px; height: 44px; border-radius: 12px; cursor: pointer; font-size: 1.2rem;
-    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-  }
-  .btn-icon:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
-  .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
-  
-  /* Details Section */
-  .card-detail { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out; }
-  .card-detail.open { max-height: 300px; }
-  .detail-inner { padding: 0 24px 20px 68px; display: flex; flex-direction: column; gap: 12px; }
-  .detail-inputs { display: flex; gap: 12px; flex-wrap: wrap; }
-  .detail-inputs input {
-    background: var(--input-bg); border: 1px solid var(--border); color: var(--text-main);
-    padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 1rem; outline: none;
-  }
-  .detail-inputs input:focus { border-color: var(--primary); }
-  .input-tags { flex: 2; min-width: 150px; }
-  .input-weight { flex: 1; min-width: 100px; }
-  .card-detail textarea {
-    width: 100%; background: var(--input-bg); border: 1px solid var(--border);
-    color: var(--text-main); font-family: inherit; padding: 14px 16px; border-radius: 10px;
-    resize: none; height: 80px; outline: none; font-size: 1rem;
-  }
-  .card-detail textarea:focus { border-color: var(--primary); }
-
-  /* Empty State */
-  .empty-state {
-    text-align: center; padding: 60px 20px; background: rgba(255,255,255,0.02);
-    border: 2px dashed var(--border); border-radius: 20px; color: var(--text-muted);
-  }
-
-  /* Bottom Actions */
-  .action-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(255,255,255,0.1); padding: 16px 20px; z-index: 50; display: flex; justify-content: center;
-  }
-  [data-theme="light"] .action-bar { background: rgba(255, 255, 255, 0.9); border-top-color: rgba(0,0,0,0.1); }
-
-  .action-inner { display: flex; gap: 12px; max-width: 800px; width: 100%; flex-wrap: wrap; justify-content: center; }
-  .btn-main {
-    flex: 1; min-width: 160px; padding: 18px 20px; border-radius: 16px; font-family: inherit; font-size: 1.15rem;
-    font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-  .btn-slot { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.2); }
-  .btn-slot:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4); }
-  
-  .btn-weight { background: rgba(139, 92, 246, 0.15); color: var(--primary); border-color: rgba(139, 92, 246, 0.3); }
-  .btn-weight:hover { background: rgba(139, 92, 246, 0.25); transform: translateY(-3px); }
-
-  .btn-confirm { background: var(--text-main); color: var(--bg-dark); }
-  .btn-confirm:hover { opacity: 0.9; transform: translateY(-3px); }
-  .btn-confirm:disabled { background: var(--input-bg); color: var(--text-muted); cursor: not-allowed; transform: none; opacity: 0.5; }
-
-  @media (max-width: 600px) {
-    .btn-main { min-width: 100%; padding: 16px; font-size: 1.1rem; }
-    .action-bar { padding: 12px; }
-  }
-
-  /* Modals Overlay */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-    z-index: 100; display: flex; align-items: center; justify-content: center;
-    padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-  }
-  .modal-overlay.show { opacity: 1; pointer-events: auto; }
-  
-  /* Result Modal */
-  .modal {
-    background: var(--card-bg); backdrop-filter: blur(25px); border: 1px solid var(--border);
-    border-radius: 24px; padding: 40px; width: 100%; max-width: 420px; text-align: center;
-    transform: scale(0.9) translateY(30px); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position: relative; overflow: hidden;
-  }
-  .modal-overlay.show .modal { transform: scale(1) translateY(0); }
-  .modal-icon { font-size: 5rem; margin-bottom: 20px; animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-  @keyframes bounceIn { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-  
-  .modal h3 { color: var(--text-muted); font-weight: 500; margin-bottom: 8px; letter-spacing: 1px; font-size: 1.2rem; }
-  .modal h2 { font-size: 2.5rem; color: var(--text-main); margin-bottom: 24px; line-height: 1.2; word-break: break-word; }
-  .modal-btn {
-    width: 100%; padding: 18px; border-radius: 16px; font-family: inherit; font-size: 1.2rem;
-    font-weight: 600; cursor: pointer; border: none; background: linear-gradient(to right, var(--primary), var(--secondary)); color: white;
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); transition: all 0.2s;
-  }
-  .modal-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5); }
-
-  /* Settings & History Modal */
-  .settings-modal {
-    max-width: 500px;
-    padding: 30px;
-    text-align: left;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-  }
-  .settings-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
-  }
-  .settings-header h2 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
-  .btn-close-modal {
-    background: rgba(255,255,255,0.1); border: none; color: var(--text-muted);
-    width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem;
-    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-  }
-  .btn-close-modal:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-  
-  .settings-body { overflow-y: auto; padding-right: 10px; }
-  .settings-body::-webkit-scrollbar { width: 6px; }
-  .settings-body::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.4); border-radius: 10px; }
-
-  .settings-section { margin-bottom: 30px; }
-  .settings-section h4 { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 16px; }
-  
-  .theme-options { display: flex; gap: 12px; }
-  .theme-btn {
-    flex: 1; padding: 12px 0; border: 2px solid var(--border);
-    background: var(--input-bg); color: var(--text-main);
-    border-radius: 12px; font-size: 1rem; cursor: pointer; transition: all 0.2s; font-family: inherit;
-  }
-  .theme-btn:hover { border-color: var(--primary); }
-  .theme-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-  .history-list { display: flex; flex-direction: column; gap: 12px; }
-  .history-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 16px; background: var(--input-bg); border: 1px solid var(--border);
-    border-radius: 12px; font-size: 1rem; transition: transform 0.2s;
-  }
-  .history-info { display: flex; flex-direction: column; gap: 4px; }
-  .history-title { font-weight: 500; color: var(--text-main); font-size: 1.1rem; }
-  .history-date { font-size: 0.85rem; color: var(--text-muted); }
-  .btn-clear-history {
-    width: 100%; padding: 14px; background: transparent; border: 2px dashed var(--border);
-    color: var(--text-muted); border-radius: 12px; margin-top: 16px; cursor: pointer;
-    font-family: inherit; font-size: 1rem; transition: all 0.2s;
-  }
-  .btn-clear-history:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: var(--danger); }
-
-  /* Confetti */
-  .confetti { position: absolute; width: 10px; height: 10px; background: #f00; opacity: 0; }
-  @keyframes fall {
-    0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(200px) rotate(360deg); opacity: 0; }
-  }
+/* Gallery */
+.gallery{
+    margin-top:25px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:15px;
+}
+.gallery img{
+    width:100%;
+    border-radius:10px;
+    box-shadow:0 10px 20px rgba(0,0,0,0.4);
+}
 </style>
 </head>
-<body data-theme="dark">
 
-<div class="app-wrapper">
-  
-  <button class="btn-settings" id="openSettingsBtn" title="ตั้งค่าและประวัติ">⚙️</button>
+<body>
+<div class="container">
 
-  <header>
-    <h1>ตัดสินใจเลย!</h1>
-    <p>โยนความลังเลทิ้งไป... ปล่อยให้เราช่วยคุณเลือก!</p>
-  </header>
-
-  <div class="input-group">
-    <input type="text" id="choiceInput" placeholder="พิมพ์ตัวเลือกที่นี่ เช่น ชาบู, สุกี้..." maxlength="100" autocomplete="off">
-    <button class="btn-add" id="addBtn" title="เพิ่มตัวเลือก">+</button>
-  </div>
-
-  <div class="list-header">
-    <h2>ตัวเลือกทั้งหมด <span class="badge" id="countBadge">0</span></h2>
-    <span class="weight-text">น้ำหนักรวม: <span id="weightBadge">0</span></span>
-  </div>
-
-  <div class="choices-list" id="choicesList">
-    <div class="empty-state" id="emptyState">
-      <div class="icon" style="font-size: 4rem; margin-bottom: 12px; opacity: 0.8;">🤔</div>
-      <p style="font-size: 1.1rem;">ยังไม่มีตัวเลือก พิมพ์แล้วกดบวกเลย!</p>
+    <div class="header">
+        <h1>📄 PDF → Image Converter</h1>
+        <p>แปลงไฟล์ PDF เป็นรูปภาพ พร้อมดูตัวอย่างทุกหน้า</p>
     </div>
-  </div>
-</div>
 
-<div class="action-bar">
-  <div class="action-inner">
-    <button class="btn-main btn-slot" id="randomBtn">🎰 สุ่มแบบปกติ</button>
-    <button class="btn-main btn-weight" id="randomWeightBtn">⚖️ สุ่มตามน้ำหนัก</button>
-    <button class="btn-main btn-confirm" id="confirmBtn" disabled>✔️ ยืนยันเลย</button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="resultModalOverlay">
-  <div class="modal" id="modalBox">
-    <div class="modal-icon" id="modalIcon">🎉</div>
-    <h3 id="modalSubtitle">ผลการตัดสินใจ</h3>
-    <h2 id="modalTitle">ชาบู</h2>
-    <button class="modal-btn" id="closeResultBtn">เยี่ยมไปเลย!</button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="settingsModalOverlay">
-  <div class="modal settings-modal">
-    <div class="settings-header">
-      <h2>⚙️ ตั้งค่าและประวัติ</h2>
-      <button class="btn-close-modal" id="closeSettingsBtn">✕</button>
+    <!-- Upload -->
+    <div class="upload-box" id="dropZone">
+        <p>📂 คลิกหรือวางไฟล์ PDF ที่นี่</p>
+        <input type="file" id="pdfInput" accept="application/pdf" hidden>
     </div>
-    <div class="settings-body">
-      <div class="settings-section">
-        <h4>🎨 เลือกธีมสี</h4>
-        <div class="theme-options">
-          <button class="theme-btn active" data-set-theme="dark">Dark</button>
-          <button class="theme-btn" data-set-theme="light">Light</button>
-          <button class="theme-btn" data-set-theme="gradient">Glow</button>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h4>📊 ประวัติการตัดสินใจ</h4>
-        <div class="history-list" id="historyList"></div>
-        <button class="btn-clear-history" id="clearHistoryBtn">ล้างประวัติทั้งหมด</button>
-        <button class="btn-clear-history" id="clearChoicesBtn" style="border-color: var(--danger); color: var(--danger); margin-top: 10px;">✕ ล้างตัวเลือกที่พิมพ์ไว้ทั้งหมด</button>
-      </div>
+
+    <center>
+        <button id="convertBtn">🚀 แปลง + ดาวน์โหลด ZIP</button>
+    </center>
+
+    <div class="status" id="status"></div>
+
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
     </div>
-  </div>
+
+    <!-- Preview -->
+    <div class="gallery" id="gallery"></div>
+
 </div>
 
 <script>
-  let choices = JSON.parse(localStorage.getItem('dm_choices')) || [];
-  let decisionHistory = JSON.parse(localStorage.getItem('dm_history')) || [];
-  let currentTheme = localStorage.getItem('dm_theme') || 'dark';
-  
-  let selectedId = null;
-  let isSpinning = false;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-  const elements = {
-    input: document.getElementById('choiceInput'),
-    addBtn: document.getElementById('addBtn'),
-    list: document.getElementById('choicesList'),
-    emptyState: document.getElementById('emptyState'),
-    countBadge: document.getElementById('countBadge'),
-    weightBadge: document.getElementById('weightBadge'),
-    randomBtn: document.getElementById('randomBtn'),
-    randomWeightBtn: document.getElementById('randomWeightBtn'),
-    confirmBtn: document.getElementById('confirmBtn'),
-    historyList: document.getElementById('historyList'),
-    clearHistoryBtn: document.getElementById('clearHistoryBtn'),
-    clearChoicesBtn: document.getElementById('clearChoicesBtn'),
-    
-    // Result Modal
-    resultModalOverlay: document.getElementById('resultModalOverlay'),
-    modalBox: document.getElementById('modalBox'),
-    modalTitle: document.getElementById('modalTitle'),
-    modalIcon: document.getElementById('modalIcon'),
-    modalSubtitle: document.getElementById('modalSubtitle'),
-    closeResultBtn: document.getElementById('closeResultBtn'),
-    
-    // Settings Modal
-    openSettingsBtn: document.getElementById('openSettingsBtn'),
-    settingsModalOverlay: document.getElementById('settingsModalOverlay'),
-    closeSettingsBtn: document.getElementById('closeSettingsBtn'),
-  };
+const input = document.getElementById('pdfInput');
+const dropZone = document.getElementById('dropZone');
 
-  // --- Theme Logic ---
-  function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    localStorage.setItem('dm_theme', theme);
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.setTheme === theme);
-    });
-  }
-  applyTheme(currentTheme);
+dropZone.addEventListener('click', () => input.click());
 
-  document.querySelectorAll('.theme-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => applyTheme(e.target.dataset.setTheme));
-  });
+dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.style.background = "rgba(255,255,255,0.1)";
+});
 
-  // --- Settings Modal Toggle ---
-  elements.openSettingsBtn.addEventListener('click', () => {
-    elements.settingsModalOverlay.classList.add('show');
-    renderHistory();
-  });
-  elements.closeSettingsBtn.addEventListener('click', () => elements.settingsModalOverlay.classList.remove('show'));
-  elements.settingsModalOverlay.addEventListener('click', (e) => {
-    if (e.target === elements.settingsModalOverlay) elements.settingsModalOverlay.classList.remove('show');
-  });
+dropZone.addEventListener('dragleave', () => {
+    dropZone.style.background = "rgba(255,255,255,0.05)";
+});
 
-  // --- Core Logic ---
-  function saveData() {
-    localStorage.setItem('dm_choices', JSON.stringify(choices));
-    localStorage.setItem('dm_history', JSON.stringify(decisionHistory));
-  }
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    input.files = e.dataTransfer.files;
+});
 
-  function generateId() { return Math.random().toString(36).substr(2, 9); }
-  function escapeHtml(str) { return String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match])); }
+document.getElementById('convertBtn').addEventListener('click', async () => {
+    if(input.files.length === 0) return alert('เลือกไฟล์ก่อนครับ');
 
-  function renderHistory() {
-    elements.historyList.innerHTML = '';
-    if (decisionHistory.length === 0) {
-      elements.historyList.innerHTML = '<div style="text-align:center; padding: 30px 10px; color: var(--text-muted); font-size: 1.1rem;">ยังไม่มีประวัติการสุ่ม<br>ลองกดสุ่มด้านนอกสิ!</div>';
-      return;
-    }
-    
-    [...decisionHistory].reverse().forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'history-item';
-      div.innerHTML = `
-        <div class="history-info">
-          <span class="history-title">🎯 ${escapeHtml(item.title)}</span>
-          <span class="history-date">${item.date}</span>
-        </div>
-      `;
-      elements.historyList.appendChild(div);
-    });
-  }
+    const file = input.files[0];
+    const reader = new FileReader();
 
-  function render() {
-    const cards = elements.list.querySelectorAll('.choice-card');
-    cards.forEach(card => card.remove());
+    document.getElementById('gallery').innerHTML = '';
+    document.getElementById('status').innerText = 'กำลังโหลด PDF...';
 
-    let totalWeight = 0;
-    elements.countBadge.textContent = choices.length;
-    elements.emptyState.style.display = choices.length === 0 ? 'block' : 'none';
-    elements.confirmBtn.disabled = !selectedId || choices.length === 0;
+    reader.onload = async function() {
+        const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
+        const zip = new JSZip();
 
-    choices.forEach((choice) => {
-      totalWeight += Number(choice.weight) || 1;
-      const card = document.createElement('div');
-      card.className = `choice-card ${choice.id === selectedId ? 'selected' : ''}`;
-      card.id = `card-${choice.id}`;
-      
-      let tagsHtml = '';
-      if(choice.tags && choice.tags.trim() !== '') {
-        const tagsArray = choice.tags.split(',').map(t => t.trim()).filter(t => t);
-        tagsHtml = tagsArray.map(t => `<span class="meta-tag">🏷️ ${escapeHtml(t)}</span>`).join('');
-      }
+        for(let i=1;i<=pdf.numPages;i++){
+            const page = await pdf.getPage(i);
+            const scale = 2.5;
+            const viewport = page.getViewport({scale});
 
-      card.innerHTML = `
-        <div class="card-main">
-          <div class="radio-circle"><div class="radio-inner"></div></div>
-          <div class="choice-title">
-            <span>${escapeHtml(choice.title)}</span>
-            <div class="choice-meta">
-              ${tagsHtml}
-              <span class="meta-tag">⚖️ น้ำหนัก: ${choice.weight || 1}</span>
-            </div>
-          </div>
-          <div class="card-actions">
-            <button class="btn-icon btn-expand" title="ตั้งค่า/รายละเอียด">✏️</button>
-            <button class="btn-icon danger btn-delete" title="ลบ">🗑️</button>
-          </div>
-        </div>
-        <div class="card-detail ${choice.showDetail ? 'open' : ''}">
-          <div class="detail-inner">
-            <div class="detail-inputs">
-              <input type="text" class="input-tags" placeholder="แท็ก (เช่น ด่วน, มื้อเย็น)" value="${escapeHtml(choice.tags || '')}">
-              <input type="number" class="input-weight" placeholder="น้ำหนัก" min="1" max="1000" value="${choice.weight || 1}">
-            </div>
-            <textarea placeholder="เพิ่มรายละเอียดอื่นๆ...">${escapeHtml(choice.detail || '')}</textarea>
-          </div>
-        </div>
-      `;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
 
-      card.querySelector('.card-main').addEventListener('click', (e) => {
-        if(e.target.closest('.card-actions')) return;
-        selectedId = choice.id;
-        render();
-      });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
 
-      card.querySelector('.btn-expand').addEventListener('click', () => {
-        choice.showDetail = !choice.showDetail;
-        render(); saveData();
-      });
+            await page.render({canvasContext:ctx,viewport}).promise;
 
-      card.querySelector('.btn-delete').addEventListener('click', () => {
-        card.classList.add('removing');
-        setTimeout(() => {
-          choices = choices.filter(c => c.id !== choice.id);
-          if(selectedId === choice.id) selectedId = null;
-          render(); saveData();
-        }, 300);
-      });
+            const imgURL = canvas.toDataURL('image/png');
 
-      card.querySelector('.input-tags').addEventListener('input', (e) => { choice.tags = e.target.value; saveData(); });
-      card.querySelector('.input-weight').addEventListener('change', (e) => { choice.weight = Number(e.target.value) || 1; render(); saveData(); });
-      card.querySelector('textarea').addEventListener('input', (e) => { choice.detail = e.target.value; saveData(); });
+            // ✅ แสดง preview
+            const img = document.createElement('img');
+            img.src = imgURL;
+            document.getElementById('gallery').appendChild(img);
 
-      elements.list.appendChild(card);
-    });
+            // ✅ ใส่ zip
+            zip.file(`page_${i}.png`, imgURL.split(',')[1], {base64:true});
 
-    elements.weightBadge.textContent = totalWeight;
-  }
+            // progress
+            let percent = (i/pdf.numPages)*100;
+            document.getElementById('progressBar').style.width = percent+'%';
+            document.getElementById('status').innerText = `กำลังแปลง ${i}/${pdf.numPages}`;
+        }
 
-  function addChoice() {
-    const text = elements.input.value.trim();
-    if (!text) return;
-    choices.push({ id: generateId(), title: text, detail: '', tags: '', weight: 1, showDetail: false });
-    elements.input.value = '';
-    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
-    render(); saveData();
-  }
+        document.getElementById('status').innerText = 'กำลังสร้าง ZIP...';
+        const content = await zip.generateAsync({type:"blob"});
+        saveAs(content,"pdf_images.zip");
 
-  function saveToHistory(title) {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' });
-    decisionHistory.push({ title, date: dateStr });
-    if(decisionHistory.length > 30) decisionHistory.shift(); 
-    saveData();
-  }
-
-  function createConfetti() {
-    const colors = ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
-    for(let i=0; i<30; i++) {
-      const conf = document.createElement('div');
-      conf.className = 'confetti';
-      conf.style.left = Math.random() * 100 + '%';
-      conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      conf.style.animation = `fall ${Math.random() * 1 + 1}s ease forwards`;
-      elements.modalBox.appendChild(conf);
-      setTimeout(() => conf.remove(), 2000);
-    }
-  }
-
-  function showResultModal(choice, isRandom = false, type = '') {
-    elements.modalTitle.textContent = choice.title;
-    elements.modalSubtitle.textContent = isRandom ? `ระบบสุ่มให้คุณคือ... (${type})` : 'ตัวเลือกที่คุณตัดสินใจ...';
-    elements.modalIcon.textContent = isRandom ? '🎰' : '🎯';
-    elements.resultModalOverlay.classList.add('show');
-    
-    createConfetti();
-    saveToHistory(choice.title);
-  }
-
-  function spinRoulette(weighted = false) {
-    if (choices.length === 0 || isSpinning) return;
-    if (choices.length === 1) {
-      selectedId = choices[0].id; render(); showResultModal(choices[0], true, 'ตัวเลือกเดียว'); return;
-    }
-
-    isSpinning = true;
-    elements.randomBtn.disabled = true;
-    elements.randomWeightBtn.disabled = true;
-    selectedId = null; render();
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    let spins = 0;
-    const maxSpins = Math.floor(Math.random() * 10) + 25;
-    let currentIndex = 0;
-    let finalTargetIndex = 0;
-
-    if(weighted) {
-      const totalWeight = choices.reduce((sum, c) => sum + (Number(c.weight) || 1), 0);
-      let randomVal = Math.random() * totalWeight;
-      for(let i = 0; i < choices.length; i++) {
-        randomVal -= (Number(choices[i].weight) || 1);
-        if(randomVal <= 0) { finalTargetIndex = i; break; }
-      }
-    } else {
-      finalTargetIndex = Math.floor(Math.random() * choices.length);
-    }
-
-    const spinInterval = () => {
-      document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('spinning'));
-      
-      const activeCard = document.getElementById(`card-${choices[currentIndex].id}`);
-      if(activeCard) activeCard.classList.add('spinning');
-
-      spins++;
-      
-      if (spins < maxSpins || (spins >= maxSpins && currentIndex !== finalTargetIndex)) {
-        currentIndex = (currentIndex + 1) % choices.length;
-        const delay = Math.max(40, spins * 12); 
-        setTimeout(spinInterval, delay);
-      } else {
-        isSpinning = false;
-        elements.randomBtn.disabled = false;
-        elements.randomWeightBtn.disabled = false;
-        selectedId = choices[finalTargetIndex].id;
-        render(); 
-        setTimeout(() => showResultModal(choices[finalTargetIndex], true, weighted ? 'แบบถ่วงน้ำหนัก' : 'แบบปกติ'), 400);
-      }
+        document.getElementById('status').innerText = '✅ เสร็จแล้ว!';
     };
-    spinInterval();
-  }
 
-  // --- Event Listeners ---
-  elements.addBtn.addEventListener('click', addChoice);
-  elements.input.addEventListener('keypress', (e) => { if (e.key === 'Enter') addChoice(); });
-  
-  elements.clearChoicesBtn.addEventListener('click', () => {
-    if(confirm('คุณต้องการล้าง "ตัวเลือกทั้งหมด" ใช่หรือไม่?')) { 
-      choices = []; selectedId = null; render(); saveData();
-      elements.settingsModalOverlay.classList.remove('show');
-    }
-  });
-
-  elements.clearHistoryBtn.addEventListener('click', () => {
-    if(confirm('ต้องการลบประวัติการตัดสินใจทั้งหมด?')) { 
-      decisionHistory = []; renderHistory(); saveData(); 
-    }
-  });
-
-  elements.confirmBtn.addEventListener('click', () => {
-    const choice = choices.find(c => c.id === selectedId);
-    if(choice) showResultModal(choice, false);
-  });
-
-  elements.randomBtn.addEventListener('click', () => spinRoulette(false));
-  elements.randomWeightBtn.addEventListener('click', () => spinRoulette(true));
-  
-  elements.closeResultBtn.addEventListener('click', () => elements.resultModalOverlay.classList.remove('show'));
-  elements.resultModalOverlay.addEventListener('click', (e) => {
-    if (e.target === elements.resultModalOverlay) elements.resultModalOverlay.classList.remove('show');
-  });
-
-  // Initialize App
-  render();
+    reader.readAsArrayBuffer(file);
+});
 </script>
 </body>
 </html>
