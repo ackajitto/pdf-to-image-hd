@@ -61,14 +61,31 @@ button:disabled{
 }
 .gallery{
     margin-top:25px;
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-    gap:15px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
 }
+
+/* รูป */
 .gallery img{
     width:100%;
-    border-radius:10px;
-    box-shadow:0 10px 20px rgba(0,0,0,0.4);
+    border-radius:12px;
+    box-shadow:0 15px 30px rgba(0,0,0,0.5);
+}
+
+/* 💻 Desktop: ขยายแต่ไม่เต็มเกิน */
+@media(min-width:768px){
+    .gallery img{
+        width:90%;
+        margin:auto;
+    }
+}
+
+/* 🖥 จอใหญ่: สวยขึ้นอีก */
+@media(min-width:1200px){
+    .gallery img{
+        width:70%;
+    }
 }
 </style>
 </head>
